@@ -6,8 +6,15 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-# Use SQLite as fallback for development if PostgreSQL is not available
 DATABASE_URL = settings.DATABASE_URL
+
+# IMPORTANT FIX FOR RAILWAY
+if DATABASE_URL.startswith("postgres://"):
+    DATABASE_URL = DATABASE_URL.replace(
+        "postgres://",
+        "postgresql://",
+        1
+    )
 
 try:
     engine = create_engine(
@@ -18,7 +25,6 @@ try:
         echo=settings.DEBUG,
     )
 except Exception:
-    # Fallback to SQLite for development
     DATABASE_URL = "sqlite:///./ecm_system.db"
     engine = create_engine(
         DATABASE_URL,
@@ -27,7 +33,12 @@ except Exception:
     )
     logger.warning("PostgreSQL not available, using SQLite fallback")
 
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+SessionLocal = sessionmaker(
+    autocommit=False,
+    autoflush=False,
+    bind=engine
+)
+
 Base = declarative_base()
 
 
@@ -40,6 +51,6 @@ def get_db():
 
 
 def init_db():
-    from app.models import user, ecr, ecn, bom, approval, audit  # noqa
+    from app.models import user, ecr, ecn, bom, approval, audit
     Base.metadata.create_all(bind=engine)
     logger.info("Database tables created successfully")

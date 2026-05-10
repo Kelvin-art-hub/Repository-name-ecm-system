@@ -36,6 +36,8 @@ def seed_database(db: Session):
              password_hash=get_password_hash("alice123"), role="approver", department="Quality", is_active=True),
         User(username="bob.wilson", email="bob.w@ecm.com", full_name="Bob Wilson",
              password_hash=get_password_hash("bob123"), role="viewer", department="Procurement", is_active=True),
+        User(username="kelvin", email="kelvin@ecm.com", full_name="Kelvin",
+             password_hash=get_password_hash("123"), role="admin", department="IT", is_active=True),
     ]
     for u in users:
         db.add(u)

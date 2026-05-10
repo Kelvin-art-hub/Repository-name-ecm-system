@@ -51,6 +51,6 @@ def get_db():
 
 
 def init_db():
-    from app.models import user, ecr, ecn, bom, approval, audit
+    from app.models import user, ecr, ecn, bom, approval, audit, policy  # noqa: F401
     Base.metadata.create_all(bind=engine)
     logger.info("Database tables created successfully")

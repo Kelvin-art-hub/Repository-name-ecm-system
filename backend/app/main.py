@@ -6,7 +6,7 @@ import logging
 
 from app.config import settings
 from app.database import init_db, SessionLocal
-from app.routers import auth, users, ecr, ecn, bom, approvals, audit, dashboard, ai
+from app.routers import auth, users, ecr, ecn, bom, approvals, audit, dashboard, ai, governance
 
 logging.basicConfig(
     level=logging.INFO,
@@ -17,19 +17,35 @@ logger = logging.getLogger(__name__)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Startup
     logger.info(f"Starting {settings.APP_NAME} v{settings.APP_VERSION}")
-    init_db()
-    # Seed demo data
+
+    # 1. Create all DB tables
+    try:
+        init_db()
+        logger.info("Database tables ready")
+    except Exception as e:
+        logger.error(f"DB init failed: {e}")
+        raise
+
+    # 2. Seed demo users / ECRs / BOM (skips if already seeded)
     try:
         from app.seed import seed_database
         with SessionLocal() as db:
             seed_database(db)
     except Exception as e:
-        logger.warning(f"Seeding skipped or failed: {e}")
+        logger.warning(f"Main seed skipped: {e}")
+
+    # 3. Seed governance policies and workflow templates (idempotent)
+    try:
+        from app.services.policy_engine import policy_engine
+        with SessionLocal() as db:
+            policy_engine.seed_default_policies(db)
+        logger.info("Governance policies seeded")
+    except Exception as e:
+        logger.warning(f"Governance seed skipped: {e}")
+
     logger.info("Application startup complete")
     yield
-    # Shutdown
     logger.info("Application shutting down")
 
 
@@ -39,32 +55,21 @@ app = FastAPI(
     description="""
 ## Enterprise Change Management (ECM) System API
 
-A production-ready platform for managing engineering changes in manufacturing workflows.
-
-### Features
-- **ECR Management** — Create, track, and approve Engineering Change Requests
-- **ECN Workflow** — Auto-generate Engineering Change Notices from approved ECRs
-- **BOM Management** — Version-controlled Bill of Materials with Redis-based locking
-- **Approval Workflow** — Multi-stage approval with role-based access
-- **AI Analysis** — Risk scoring, BOM validation, and impact analysis
-- **Audit Logs** — Complete audit trail with Kafka event publishing
-- **JWT Authentication** — Secure role-based access control
-
 ### Demo Credentials
 | Username | Password | Role |
 |----------|----------|------|
-| admin | admin123 | Admin |
+| kelvin | 123 | Admin |
 | john.doe | john123 | Senior Engineer |
 | jane.smith | jane123 | Manager |
 | mike.johnson | mike123 | Engineer |
 | alice.brown | alice123 | Approver |
+| bob.wilson | bob123 | Viewer |
     """,
     docs_url="/docs",
     redoc_url="/redoc",
     lifespan=lifespan,
 )
 
-# Middleware
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.ALLOWED_ORIGINS,
@@ -84,16 +89,12 @@ app.include_router(approvals.router)
 app.include_router(audit.router)
 app.include_router(dashboard.router)
 app.include_router(ai.router)
+app.include_router(governance.router)
 
 
 @app.get("/", tags=["Health"])
 def root():
-    return {
-        "name": settings.APP_NAME,
-        "version": settings.APP_VERSION,
-        "status": "running",
-        "docs": "/docs",
-    }
+    return {"name": settings.APP_NAME, "version": settings.APP_VERSION, "status": "running", "docs": "/docs"}
 
 
 @app.get("/health", tags=["Health"])
@@ -103,6 +104,6 @@ def health_check():
     return {
         "status": "healthy",
         "database": "connected",
-        "redis": "connected" if REDIS_AVAILABLE else "fallback (in-memory)",
-        "kafka": "connected" if KAFKA_AVAILABLE else "fallback (logging)",
+        "redis": "connected" if REDIS_AVAILABLE else "in-memory fallback",
+        "kafka": "connected" if KAFKA_AVAILABLE else "logging fallback",
     }

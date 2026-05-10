@@ -96,8 +96,8 @@ The **ECM System** (Engineering Change Management System) is an enterprise-grade
 ### 🔐 Demo Credentials
 
 ```
-Username : kelvin
-Password : 123
+Username :private {contact me if u need}
+Password :
 Role     : Administrator (full access)
 ```
 

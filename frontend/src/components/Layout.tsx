@@ -3,7 +3,7 @@ import { useAuth } from '../contexts/AuthContext'
 import { usePermissions } from '../lib/usePermissions'
 import {
   LayoutDashboard, FileText, ClipboardList, Package, CheckSquare,
-  Shield, Brain, Users, LogOut, Eye
+  Shield, Brain, Users, LogOut, Eye, ShieldCheck
 } from 'lucide-react'
 
 export default function Layout() {
@@ -94,12 +94,8 @@ export default function Layout() {
     {
       group: 'Compliance',
       items: [
-        {
-          path: '/audit',
-          label: 'Audit Logs',
-          icon: Shield,
-          show: !isViewer,
-        },
+        { path: '/audit', label: 'Audit Logs', icon: Shield, show: !isViewer },
+        { path: '/governance', label: 'Governance', icon: ShieldCheck, show: !isViewer },
       ],
     },
     {

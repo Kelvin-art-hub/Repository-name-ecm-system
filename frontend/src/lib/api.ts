@@ -113,3 +113,24 @@ export const aiApi = {
   quantityImpact: (data: object) => api.post('/api/ai/quantity-impact', data),
   insights: () => api.get('/api/ai/insights'),
 }
+
+// Governance
+export const governanceApi = {
+  dashboard: () => api.get('/api/governance/dashboard'),
+  listPolicies: (params?: object) => api.get('/api/governance/policies', { params }),
+  createPolicy: (data: object) => api.post('/api/governance/policies', data),
+  updatePolicy: (id: number, data: object) => api.put(`/api/governance/policies/${id}`, data),
+  deletePolicy: (id: number) => api.delete(`/api/governance/policies/${id}`),
+  validatePolicies: (entity_type: string, entity_data: object) => api.post('/api/governance/policies/validate', { entity_type, entity_data }),
+  listViolations: (params?: object) => api.get('/api/governance/violations', { params }),
+  resolveViolation: (id: number, data: object) => api.post(`/api/governance/violations/${id}/resolve`, data),
+  listTemplates: () => api.get('/api/governance/workflow-templates'),
+  createTemplate: (data: object) => api.post('/api/governance/workflow-templates', data),
+  updateTemplate: (id: number, data: object) => api.put(`/api/governance/workflow-templates/${id}`, data),
+  complianceReport: (days?: number) => api.get('/api/governance/compliance-report', { params: { days } }),
+  listUsersGovernance: () => api.get('/api/governance/users'),
+  changeUserRole: (id: number, role: string) => api.put(`/api/governance/users/${id}/role`, null, { params: { new_role: role } }),
+  toggleUserActive: (id: number) => api.put(`/api/governance/users/${id}/toggle-active`),
+  createUser: (data: object) => api.post('/api/governance/users/create', data),
+  auditTrail: (params?: object) => api.get('/api/governance/audit-trail', { params }),
+}

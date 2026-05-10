@@ -1,0 +1,29 @@
+# Vercel
+.vercel
+
+# Frontend build output — never commit dist
+frontend/dist/
+frontend/node_modules/
+
+# Backend
+backend/__pycache__/
+backend/**/__pycache__/
+backend/**/*.pyc
+backend/ecm_system.db
+backend/.env
+
+# Python
+*.pyc
+*.pyo
+__pycache__/
+*.egg-info/
+.venv/
+venv/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/settings.json
+.idea/
